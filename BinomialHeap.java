@@ -70,12 +70,18 @@ public class BinomialHeap
 	        System.out.println("Heap 1 after melding with Heap 2:");
 	        System.out.println(heap.toString());
 	        System.out.println("last is " + heap.last.item.key);
-	        System.out.println("last.rank is " + heap.last.rank);
-	        System.out.println("last.next is " + heap.last.next.item.key);
-	        System.out.println("last.next.rank is " + heap.last.next.rank);
-	        System.out.println("last.next.next is " + heap.last.next.next.item.key);
-	        System.out.println("last.next..next.rank is " + heap.last.next.next.rank);
-	        
+	        System.out.println("last child is " + heap.last.child.item.key);
+	        System.out.println("last child next is " + heap.last.child.next.item.key);
+	        System.out.println("last child next next is " + heap.last.child.next.next.item.key);
+
+//	        System.out.println("last child child is " + heap.last.child.child.item.key);
+
+//	        System.out.println("last.rank is " + heap.last.rank);
+//	        System.out.println("last.next is " + heap.last.next.item.key);
+//	        System.out.println("last.next.rank is " + heap.last.next.rank);
+//	        System.out.println("last.next.next is " + heap.last.next.next.item.key);
+//	        System.out.println("last.next..next.rank is " + heap.last.next.next.rank);
+//	        SanitizeBinomialHeap.sanitize(heap);
 
 	}
 	/////////////////for deletion
@@ -96,12 +102,10 @@ public class BinomialHeap
 	    if (newNode2.rank > 0) {
 	        // Find the last child in the current child list of newNode2
 	        HeapNode lastChild = newNode2.child;
-	        while (lastChild.next != newNode2.child) {
-	            lastChild = lastChild.next;
-	        }
-	        // Append newNode1 at the end of the list
-	        lastChild.next = newNode1;
-	        newNode1.next = newNode2.child; // maintain circular property
+	        HeapNode firstChild = newNode2.child.next;
+	        newNode2.child.next = newNode1;
+	        newNode1.next = firstChild;
+
 	    } else {
 	        // This case handles when the node2's child list is empty
 	        newNode2.child = newNode1;
