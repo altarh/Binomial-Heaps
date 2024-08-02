@@ -75,8 +75,6 @@ public class BinomialHeap
 	        System.out.println("last.next.rank is " + heap.last.next.rank);
 	        System.out.println("last.next.next is " + heap.last.next.next.item.key);
 	        System.out.println("last.next..next.rank is " + heap.last.next.next.rank);
-
-	        SanitizeBinomialHeap.sanitize(heap);
 	        
 
 	}
@@ -302,6 +300,9 @@ public class BinomialHeap
 		HeapNode counter1 = this.last.next;
 		HeapNode counter2 = heap2.last.next;
 		
+		HeapNode last1 = this.last;
+		HeapNode last2 = heap2.last;
+		
 		// Cutting the loop for the stop condition.
 		this.last.next = null;
 		heap2.last.next = null;
@@ -381,6 +382,7 @@ public class BinomialHeap
 		
 	 if (counter1 != null) {
 		 counter2 = counter1; // Switching names
+		 last2 = last1;
 	 }
 
 	 if (temp != null) {
@@ -396,9 +398,9 @@ public class BinomialHeap
 		 Add(newBinHeap, temp);
 	 }
 	 
-	 while (counter2 != null) {
+	 if (counter2 != null) {
 		 Add(newBinHeap, counter2);
-		 counter2 = counter2.next;
+		 newBinHeap.last = last2;
 	 }
 	 
 	 	
@@ -545,7 +547,7 @@ public class BinomialHeap
 		
 		   @Override
 		    public String toString() {
-		        return  ""+ item.key + " rank = "+ this.rank;
+		        return  ""+ item.key;
 		   }
 	}
 
