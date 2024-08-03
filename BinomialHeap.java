@@ -25,16 +25,25 @@
 		 heap.insert(7, "Five");
 		 heap.insert(8, "Five");
 		 heap.insert(9, "Five");
- 
-		 System.out.println(heap.toString());
-		 heap.deleteMin();
-		 System.out.println(heap.toString());
-		 heap.deleteMin();
-		 System.out.println(heap.toString());
+		 
+		 System.out.println("min is:");
 		 System.out.println(heap.min.item.key);
-		 System.out.println(heap.min.next.item.key);
-		 System.out.println(heap.last.item.key);
- 
+
+		 System.out.println(heap.toString());
+		 heap.deleteMin();
+		 System.out.println("after del min");
+		 System.out.println(heap.toString());
+		 System.out.println("min is:");
+		 System.out.println(heap.min.item.key);
+
+		 heap.deleteMin();
+		 System.out.println("after del min");
+		 System.out.println(heap.toString());
+		 System.out.println("min is:");
+		 System.out.println(heap.min.item.key);
+//		 System.out.println(heap.min.next.item.key);
+//		 System.out.println(heap.last.item.key);
+// 
  
  
 		 //	        System.out.println("last child child is " + heap.last.child.child.item.key);
@@ -53,6 +62,13 @@
 	 public HeapNode link(HeapNode node1, HeapNode node2) {
 		 HeapNode newNode2 = HeapNode.clone(node2);
 		 HeapNode newNode1 = HeapNode.clone(node1);
+		 
+		 if (this.min == node1) {
+			 this.min = newNode1;
+		 }
+		 if (this.min == node2) {
+			 this.min = newNode2;
+		 }
  
 		 // Ensure newNode1 is the child with the larger key
 		 if (newNode1.item.key < newNode2.item.key) {
@@ -64,7 +80,6 @@
 		 // Adding node1 to the end of the children-linked-list of node2
 		 if (newNode2.rank > 0) {
 			 // Find the last child in the current child list of newNode2
-			 HeapNode lastChild = newNode2.child;
 			 HeapNode firstChild = newNode2.child.next;
 			 newNode2.child.next = newNode1;
 			 newNode1.next = firstChild;
@@ -299,7 +314,7 @@
 		 heap2.last.next = null;
  
 		 if (heap2.min.item.key < this.min.item.key) { // Fixing min and size fields
-			 newBinHeap.min = heap2.min;
+			 this.min = heap2.min;
 		 }
 		 newBinHeap.size = this.size + heap2.size;
  
@@ -398,7 +413,6 @@
 		 this.last = newBinHeap.last;
 		 this.last.next = newBinHeap.first;
 		 this.size = newBinHeap.size;
-		 this.min = newBinHeap.min;
 	 }
  
 	 private void Add(BinomialHeap BinHeap, HeapNode heapNode) { //For meld
