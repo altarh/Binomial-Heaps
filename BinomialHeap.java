@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * BinomialHeap
  *
@@ -6,44 +10,70 @@
  */
 
 
+
  public class BinomialHeap
  {
 	 public int size;
 	 public HeapNode last;
 	 public HeapNode min;
 	 public HeapNode first;
+	 public int numOfTrees = 0;
+	 public int cntr = 0;
+	 public int rank_cntr = 0;
  
 	 //////////////main: for debugging!!
 	 public static void main(String[] args) {
+
 		 BinomialHeap heap = new BinomialHeap();
- 
-		 // Test case: Insert elements
-		 heap.insert(10, "Ten");
-		 heap.insert(20, "Twenty");
-		 heap.insert(5, "Five");
-		 heap.insert(3, "Five");
-		 heap.insert(7, "Five");
-		 heap.insert(8, "Five");
-		 heap.insert(9, "Five");
-		 
-		 System.out.println("min is:");
-		 System.out.println(heap.min.item.key);
-
-		 System.out.println(heap.toString());
+		 for (int i = 0; i < 34; i++) {
+			 heap.insert(i,"test");
+		 }
 		 heap.deleteMin();
-		 System.out.println("after del min");
-		 System.out.println(heap.toString());
-		 System.out.println("min is:");
-		 System.out.println(heap.min.item.key);
-
 		 heap.deleteMin();
-		 System.out.println("after del min");
-		 System.out.println(heap.toString());
-		 System.out.println("min is:");
-		 System.out.println(heap.min.item.key);
-//		 System.out.println(heap.min.next.item.key);
-//		 System.out.println(heap.last.item.key);
-// 
+		 heap.deleteMin();
+		 System.out.println(heap.size);
+		 System.out.println(heap.numOfTrees);
+
+
+//		 BinomialHeap heap = new BinomialHeap();
+//		 for (int i = 0; i < 300; i++) {
+//			 heap.insert(i,"test");
+//			 SanitizeBinomialHeap.sanitize(heap);
+//		 }
+//		 for (int j = 0; j < 300; j++) {
+//			 heap.deleteMin();
+//			 SanitizeBinomialHeap.sanitize(heap);
+//		 }
+
+
+//		 long startTime = System.currentTimeMillis();
+//		 for (int i = 1; i < 6; i++) {
+//			 int n = (int) Math.pow(3, i + 7) - 1;
+//			 List<Integer> list = new ArrayList<>();
+//			 for (int j = 1; j <= n; j++) {
+//				 list.add(j);
+//			 }
+//			 System.out.println("List shuffled");
+//			 Collections.shuffle(list);
+//			 BinomialHeap heap = new BinomialHeap();
+//			 for (Integer number : list) {
+//				 heap.insert(number, "test");
+//			 }
+//			 System.out.println("heap created");
+//			 for (int k = 1; k <= n/2; k++) {
+//				 heap.deleteMin();
+////				 SanitizeBinomialHeap.sanitize(heap);
+//			 }
+//
+//			 long endTime = System.currentTimeMillis();
+//			 long elapsedTime = endTime - startTime;
+//			 System.out.println("num of links " + heap.cntr);
+//			 System.out.println("total trees " + heap.numTrees());
+//			 System.out.println("sum of ranks: " + heap.rank_cntr);
+//			 System.out.println("total time " + elapsedTime);
+//			 System.out.println("--------------");
+//		 }
+	 }
  
  
 		 //	        System.out.println("last child child is " + heap.last.child.child.item.key);
@@ -54,12 +84,12 @@
 		 //	        System.out.println("last.next.next is " + heap.last.next.next.item.key);
 		 //	        System.out.println("last.next..next.rank is " + heap.last.next.next.rank);
 		 //	        SanitizeBinomialHeap.sanitize(heap);
- 
-	 }
+
 	 /////////////////for deletion
- 
- 
+
 	 public HeapNode link(HeapNode node1, HeapNode node2) {
+		 cntr += 1;
+		 numOfTrees -= 1;
 		 HeapNode newNode2 = HeapNode.clone(node2);
 		 HeapNode newNode1 = HeapNode.clone(node1);
 		 
@@ -96,23 +126,6 @@
 		 return newNode2;
 	 }
  
- 
- 
- 
-	 public void find_min(HeapNode node) {
-		 HeapNode next_node = node.next;
-		 int min = node.item.key;
-		 while (next_node != node) {
-			 if (next_node.item.key < min) {
-				 node = next_node;
-			 }
-			 next_node = next_node.next;
-		 }
-		 this.min = node;
- 
-	 }
- 
- 
 	 /**
 	  *
 	  * pre: key > 0
@@ -124,18 +137,20 @@
 	 public HeapItem insert(int key, String info)
 	 {
 		 HeapItem new_node_item = new HeapItem();
+		 HeapNode new_node = new HeapNode();
 		 new_node_item.key = key;
 		 new_node_item.info = info;
-		 HeapNode new_node = new HeapNode();
+		 new_node_item.node = new_node;
 		 new_node.item = new_node_item;
 		 new_node.rank = 0;
 		 new_node.next = new_node;
-		 new_node.item.node = new_node;
+
  
 		 if (this.empty()) {
 			 this.last = new_node;
 			 this.last.next = this.last;
 			 this.size = 1;
+			 this.numOfTrees = 1;
 			 this.min = this.last;
 		 }
  
@@ -144,6 +159,7 @@
 			 newBinHeap.min = new_node;
 			 newBinHeap.last = new_node;
 			 newBinHeap.size = 1;
+			 newBinHeap.numOfTrees = 1;
  
  
 			 this.meld(newBinHeap);
@@ -165,15 +181,17 @@
 		 BinomialHeap min_node_children = new BinomialHeap();
 		 min_node_children.last = min_node.child;
 		 min_node_children.min = min_node.child;
- 
+
 		 // if deleted node has 0 children or deleted node is the sole node in our heap.
-		 if (min_node_children.min == null){
+		 if (this.min.child == null){
 			 if (this.min.next == this.min) {
 				 this.min = null;
 				 this.last = null;
+				 this.numOfTrees = 0;
 				 size = 0;
 				 return;
 			 }
+
 			 HeapNode node = this.min.next;
 			 while (node.next != this.min) {
 				 node = node.next;
@@ -181,49 +199,86 @@
 			 HeapNode temp = node.next.next;
 			 node.next.next = null;
 			 node.next = temp;
-			 find_min(node);
+			 this.min = findNewMin(node);
 			 this.size -= 1;
+			 this.numOfTrees -= 1;
 			 return;
- 
+
 		 }
-		 // if deleted minimum has 1 or mor children.
+
+		 // if deleted minimum has 1 or more children.
 		 min_node_children.last = this.min.child;
-		 min_node_children.min = findChildrenMin(min_node_children.min);
-		 min_node_children.size = (int) Math.pow(2,this.min.rank) - 1;
- 
+		 min_node_children.min = findChildrenMin(min_node_children.last);
+		 min_node_children.size = ((int)Math.pow(2, this.min.rank) - 1);
+		 min_node_children.numOfTrees = this.min.rank;
+		 this.min.child = null;
+
 		 // removing any connection to the previous minimum
 		 int rank_of_deleted_node = this.min.rank;
+		 rank_cntr += rank_of_deleted_node;
 		 HeapNode node = this.min.next;
+		 if (node == this.min) {
+			  this.min = min_node_children.min;
+			  this.last = min_node_children.last;
+			  this.size = min_node_children.size;
+			  this.numOfTrees = rank_of_deleted_node;
+			  return;
+		 }
 		 while (node.next != this.min) {
 			 node = node.next;
 		 }
 		 HeapNode temp = node.next.next;
 		 node.next.next = null;
 		 node.next = temp;
-		 find_min(node);
-		 this.last = node;
+		 this.min = findNewMin(node);
 		 this.size = this.size - (int) Math.pow(2,rank_of_deleted_node);
- 
+		 this.last = this.last.rank == rank_of_deleted_node ? node : this.last;
+		 this.numOfTrees -= 1;
+
 		 this.meld(min_node_children);
+
 		 return; // should be replaced by student code
- 
+
 	 }
- 
-	 private HeapNode findChildrenMin(HeapNode node) {
-		 HeapNode minimum = node;
-		 HeapNode new_minimum = node;
-		 int min_key = minimum.item.key;
-		 node.parent = null;
-		 while (node.next != minimum) {
-			 node = node.next;
-			 node.parent = null;
-			 if (node.item.key < min_key) {
-				 new_minimum = node;
-			 }
+
+	 private HeapNode findChildrenMin(HeapNode start) {
+		 if (start == null) {
+			 return null;
 		 }
-		 return new_minimum;
+
+		 HeapNode curr = start;
+		 HeapNode newMin = curr;
+
+		 do {
+			 curr.parent = null;
+			 if (curr.item.key < newMin.item.key) {
+				 newMin = curr;
+			 }
+			 curr = curr.next;
+		 } while (curr != null && curr != start);
+
+		 return newMin;
 	 }
- 
+
+	 private HeapNode findNewMin(HeapNode start) {
+		 if (start == null) {
+			 return null;
+		 }
+
+		 HeapNode curr = start;
+		 HeapNode newMin = curr;
+
+		 do {
+			 if (curr.item.key < newMin.item.key) {
+				 newMin = curr;
+			 }
+			 curr = curr.next;
+		 } while (curr != null && curr != start);
+
+		 return newMin;
+	 }
+
+
 	 /**
 	  *
 	  * Return the minimal HeapItem, null if empty.
@@ -254,17 +309,14 @@
 		 while (parent_node != null && curr_node.item.key < parent_node.item.key) {
 			 HeapItem temp = parent_node.item;
 			 parent_node.item = curr_node.item;
-			 curr_node.item = parent_node.item;
+			 curr_node.item = temp;
  
 			 curr_node = parent_node;
 			 parent_node = curr_node.parent;
 		 }
  
-		 if (curr_node.parent == null) { // Fix the condition for sentinel!!!! then we know it is one of the roots
-			 find_min(curr_node);
- 
-		 }
-		 return; // should be replaced by student code
+
+		 this.min = findNewMin(curr_node);
 	 }
  
 	 /**
@@ -276,8 +328,8 @@
 	 {
 		 int inf = Integer.MIN_VALUE;
 		 decreaseKey(item, inf);
+		 this.min = findNewMin(this.last);
 		 this.deleteMin();
-		 return; // should be replaced by student code
 	 }
  
 	 /**
@@ -288,6 +340,7 @@
 	 public void meld(BinomialHeap heap2)
  
 	 {
+		 int link_cntr = 0;
 		 if (heap2.size == 1){
 			 meld_single(heap2);
 			 return;
@@ -317,11 +370,13 @@
 			 this.min = heap2.min;
 		 }
 		 newBinHeap.size = this.size + heap2.size;
+		 newBinHeap.numOfTrees = this.numOfTrees + heap2.numOfTrees;
  
  
  
 		 if (counter1.rank == counter2.rank) {
 			 temp = link(counter1, counter2);
+			 link_cntr += 1;
 			 counter1 = counter1.next;
 			 counter2 = counter2.next;
 		 }
@@ -337,6 +392,7 @@
 			 if (temp == null) {
 				 if (counter1.rank == counter2.rank) {
 					 temp = link(counter1, counter2);
+					 link_cntr += 1;
 					 counter1 = counter1.next;
 					 counter2 = counter2.next;
 					 continue;
@@ -359,6 +415,7 @@
 						 Add(newBinHeap, temp);
  
 						 temp = link(counter1, counter2);
+						 link_cntr += 1;
 						 counter1 = counter1.next;
 						 counter2 = counter2.next;
 						 continue;
@@ -366,11 +423,13 @@
  
 					 if (counter1.rank < counter2.rank) {
 						 temp = link(temp, counter1);
+						 link_cntr += 1;
 						 counter1 = counter1.next;
 						 continue;
 					 }
 					 if (counter2.rank < counter1.rank) {
 						 temp = link(temp, counter2);
+						 link_cntr += 1;
 						 counter2 = counter2.next;
 						 continue;
 					 }
@@ -395,6 +454,7 @@
 			 while (counter2 != null) {
 				 if(counter2.rank == temp.rank) {
 					 temp = link(counter2, temp);
+					 link_cntr += 1;
 					 counter2 = counter2.next;
 				 }
 				 else {
@@ -413,6 +473,7 @@
 		 this.last = newBinHeap.last;
 		 this.last.next = newBinHeap.first;
 		 this.size = newBinHeap.size;
+		 this.numOfTrees = newBinHeap.numOfTrees - link_cntr;
 	 }
  
 	 private void Add(BinomialHeap BinHeap, HeapNode heapNode) { //For meld
@@ -428,7 +489,8 @@
  
  
 	 private void meld_single(BinomialHeap heap2) {
- 
+
+		 this.numOfTrees += heap2.numOfTrees;
 		 if (heap2.min.item.key < this.min.item.key) { //Updating min
 			 this.min = heap2.min;
 		 }
@@ -522,7 +584,7 @@
 	  */
 	 public int numTrees()
 	 {
-		 return Integer.bitCount(this.size); // should be replaced by student code
+		 return numOfTrees; // should be replaced by student code
 	 }
  
 	 /**
@@ -558,69 +620,82 @@
 		 public String toString() {
 			 return  ""+ item.key;
 		 }
+
+		 public HeapNode getParent() {
+			 return this.parent;
+		 }
+
+		 public HeapNode getNext() {
+			 return this.next;
+		 }
+
+		 public HeapNode getChild() {
+			 return this.child;
+		 }
 	 }
  
 	 /**
 	  * Class implementing an item in a Binomial Heap.
 	  *
 	  */
-	 public static class HeapItem{
+	 public static class HeapItem {
 		 public HeapNode node;
 		 public int key;
 		 public String info;
- 
+
 		 public HeapItem() {
 			 this.info = null;
 			 this.key = -1;
 		 }
 	 }
- 
- 
- 
- 
- 
-	 /////////////////////print
-	 public String toString() {
-		 if (this.empty()) {
-			 return "Heap is empty";
-		 }
- 
-		 StringBuilder sb = new StringBuilder();
-		 sb.append("BinomialHeap\n");
- 
-		 BinomialHeap.HeapNode current = this.last.next;
-		 do {
-			 if (current != null) {
-				 sb.append("Tree with root: ").append(current.toString()).append("\n");
-				 appendTree(sb, current, "", true);
-				 current = current.next;
-			 }
-		 } while (current != this.last.next);
- 
-		 return sb.toString();
-	 }
- 
-	 private void appendTree(StringBuilder sb, BinomialHeap.HeapNode node, String indent, boolean last) {
-		 if (node == null) return;
- 
-		 sb.append(indent);
-		 if (last) {
-			 sb.append("└── ");
-			 indent += "    ";
-		 } else {
-			 sb.append("├── ");
-			 indent += "│   ";
-		 }
-		 sb.append(node.toString()).append("\n");
- 
-		 if (node.child != null) {
-			 BinomialHeap.HeapNode child = node.child;
-			 do {
-				 appendTree(sb, child, indent, child.next == node.child);
-				 child = child.next;
-			 } while (child != node.child);
-		 }
-	 }
  }
+
  
+ 
+ 
+
+//	 /////////////////////print
+//	 public String toString() {
+//		 if (this.empty()) {
+//			 return "Heap is empty";
+//		 }
+//
+//		 StringBuilder sb = new StringBuilder();
+//		 sb.append("BinomialHeap\n");
+//
+//		 BinomialHeap.HeapNode current = this.last.next;
+//		 do {
+//			 if (current != null) {
+//				 sb.append("Tree with root: ").append(current.toString()).append("\n");
+//				 appendTree(sb, current, "", true);
+//				 current = current.next;
+//			 }
+//		 } while (current != this.last.next);
+//
+//		 return sb.toString();
+//	 }
+//
+//	 private void appendTree(StringBuilder sb, BinomialHeap.HeapNode node, String indent, boolean last) {
+//		 if (node == null) return;
+//
+//		 sb.append(indent);
+//		 if (last) {
+//			 sb.append("└── ");
+//			 indent += "    ";
+//		 } else {
+//			 sb.append("├── ");
+//			 indent += "│   ";
+//		 }
+//		 sb.append(node.toString()).append("\n");
+//
+//		 if (node.child != null) {
+//			 BinomialHeap.HeapNode child = node.child;
+//			 do {
+//				 appendTree(sb, child, indent, child.next == node.child);
+//				 child = child.next;
+//			 } while (child != node.child);
+//		 }
+//	 }
+// }
+
  
