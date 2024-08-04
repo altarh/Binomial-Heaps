@@ -19,20 +19,29 @@ public class BinomialHeap {
 	//////////////main: for debugging!!
 	public static void main(String[] args) {
 		BinomialHeap heap = new BinomialHeap();
-		heap.insert(1, "test");
-		heap.insert(2, "test");
-		heap.insert(3, "test");
-		heap.insert(5, "test");
-		heap.insert(12, "test");
-		heap.insert(9, "test");
-//		System.out.println(heap.toString());
-		System.out.println(heap.last.child.child.item.node.parent.item.key);
-		heap.delete(heap.min.child.child.item);
-		heap.delete(heap.min.child.item);
+		for (int i = 2; i < 2000; i++) {
+			heap.insert(i, "test");
+		}
+
+		System.out.println(heap.last.item.key);
 		System.out.println(heap.min.item.key);
 		System.out.println(heap.size);
 		System.out.println(heap.numOfTrees);
-//		System.out.println(heap.toString());
+		System.out.println(heap.last.child.child.child.item.key);
+		System.out.println(heap.min.rank);
+		heap.deleteMin();
+		heap.deleteMin();
+		heap.deleteMin();
+		heap.deleteMin();
+		heap.deleteMin();
+		heap.deleteMin();
+		heap.deleteMin();
+		heap.deleteMin();
+		heap.deleteMin();
+		System.out.println(heap.size);
+		System.out.println(heap.numOfTrees);
+		System.out.println(heap.min.item.key);
+
 
 
 	}
@@ -226,7 +235,7 @@ public class BinomialHeap {
 				newMin = curr;
 			}
 			curr = curr.next;
-		} while (curr != null && curr != start);
+		} while (curr != start);
 
 		return newMin;
 	}
@@ -254,22 +263,24 @@ public class BinomialHeap {
 	 *
 	 */
 	public void decreaseKey(HeapItem item, int diff) {
-		item.key -= diff;
-		HeapNode node = item.node;
-		while (node.parent != null) {
-			if (node.item.key >= node.parent.item.key)
-				return;
+		item.key = item.key - diff;
+		HeapNode curr_node = item.node;
+		HeapNode parent_node = item.node.parent;
 
-			HeapItem temp = node.item;
-			node.item = node.parent.item;
-			node.item.node = node;
-			node.parent.item = temp;
-			node.parent.item.node = node.parent;
-			node = node.parent;
+		while (parent_node != null && curr_node.item.key < parent_node.item.key) {
+			HeapItem temp = parent_node.item;
+			parent_node.item = curr_node.item;
+			curr_node.item = parent_node.item;
+
+			curr_node = parent_node;
+			parent_node = curr_node.parent;
 		}
 
-		if (node.item.key < min.item.key)
-			min = node;
+		if (curr_node.parent == null) { // Fix the condition for sentinel!!!! then we know it is one of the roots
+			findNewMin(curr_node);
+
+		}
+		return; // should be replaced by student code
 	}
 
 
@@ -280,9 +291,9 @@ public class BinomialHeap {
 	 */
 	public void delete(HeapItem item)
 	{
-		int inf = Integer.MIN_VALUE;
+		int inf = Integer.MAX_VALUE;
 		decreaseKey(item, inf);
-		this.min = findNewMin(this.last);
+		this.min = findNewMin(this.min);
 		this.deleteMin();
 	}
 
@@ -427,7 +438,7 @@ public class BinomialHeap {
 		this.last = newBinHeap.last;
 		this.last.next = newBinHeap.first;
 		this.size = newBinHeap.size;
-		this.numOfTrees = newBinHeap.numOfTrees - link_cntr;
+		this.numOfTrees = Integer.bitCount(this.size);
 	}
 
 	private void Add(BinomialHeap BinHeap, HeapNode heapNode) { //For meld
