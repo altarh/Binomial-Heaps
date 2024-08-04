@@ -3,11 +3,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-class Pair<T, S> {
+class Pair2<T, S> {
     public final T first;
     public final S second;
 
-    public Pair(T first, S second) {
+    public Pair2(T first, S second) {
         this.first = first;
         this.second = second;
     }
