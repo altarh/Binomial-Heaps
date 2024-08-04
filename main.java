@@ -20,8 +20,8 @@ public class main {
         specific_test();
         test_findMin_after_deleteMin();
         
-//        System.out.println("finished test_findMin_after_deleteMin");
-//        return;
+        System.out.println("finished test_findMin_after_deleteMin");
+        return;
         BinomialHeapTest.main(args);
         BinomialHeapTester.main(args);
         Test.main(args);
@@ -39,13 +39,13 @@ public class main {
         long startTime = System.nanoTime();
         insert(size, heap, 1);
         SanitizeBinomialHeap.sanitize(heap);
-        //		// Make binom
-        //		insert(1, heap, 0);
-        //		heap.deleteMin();
-        //		links = FibonacciHeap.totalLinks();
-        //		System.out.println(heap.size());
-        //		System.out.println(heap.findMin().getKey());
-
+//        //		// Make binom
+//        		insert(1, heap, 0);
+//        		heap.deleteMin();
+//        		links = FibonacciHeap.totalLinks();
+//        		System.out.println(heap.size());
+//        		System.out.println(heap.findMin().getKey());
+//
 //        HeapPrinter hp = new HeapPrinter(System.out);
 //        hp.print(heap, false);
 
