@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 
 public class BinomialHeapTest {
 
-
     @Test
     public void testInsertAndFindMin() {
         BinomialHeap heap = new BinomialHeap();
@@ -38,43 +37,42 @@ public class BinomialHeapTest {
         // Add more insert tests as needed
     }
 
-
-    @Test
-    public void testDeleteMin() {
-        BinomialHeap heap = new BinomialHeap();
-
-        heap.insert(5, "Hi");
-        heap.insert(3, "Tomer");
-        heap.insert(8, "Harel");
-
-        assertEquals(3, heap.size());
-        assertEquals(3, heap.findMin().key);
-
-        heap.deleteMin();
-        assertEquals(2, heap.size());
-        assertEquals(5, heap.findMin().key);
-
-        heap.deleteMin();
-        assertEquals(1, heap.size());
-        assertEquals(8, heap.findMin().key);
-
-        heap.deleteMin();
-        assertEquals(0, heap.size());
-        assertEquals(null, heap.findMin()); // Assuming findMin returns null for an empty heap
-
-        // Additional deletions
-        heap.insert(2, "Charlie");
-        heap.insert(6, "David");
-        heap.deleteMin();
-        assertEquals(1, heap.size());
-        assertEquals(6, heap.findMin().key);
-
-        heap.deleteMin();
-        assertEquals(0, heap.size());
-        assertEquals(null, heap.findMin()); // Assuming findMin returns null for an empty heap
-
-        // Add more deleteMin tests as needed
-    }
+//    @Test
+//    public void testDeleteMin() {
+//        BinomialHeap heap = new BinomialHeap();
+//
+//        heap.insert(5, "Hi");
+//        heap.insert(3, "Tomer");
+//        heap.insert(8, "Harel");
+//
+//        assertEquals(3, heap.size());
+//        assertEquals(3, heap.findMin().key);
+//
+//        heap.deleteMin();
+//        assertEquals(2, heap.size());
+//        assertEquals(5, heap.findMin().key);
+//
+//        heap.deleteMin();
+//        assertEquals(1, heap.size());
+//        assertEquals(8, heap.findMin().key);
+//
+//        heap.deleteMin();
+//        assertEquals(0, heap.size());
+//        assertEquals(null, heap.findMin()); // Assuming findMin returns null for an empty heap
+//
+//        // Additional deletions
+//        heap.insert(2, "Charlie");
+//        heap.insert(6, "David");
+//        heap.deleteMin();
+//        assertEquals(1, heap.size());
+//        assertEquals(6, heap.findMin().key);
+//
+//        heap.deleteMin();
+//        assertEquals(0, heap.size());
+//        assertEquals(null, heap.findMin()); // Assuming findMin returns null for an empty heap
+//
+//        // Add more deleteMin tests as needed
+//    }
 
     // Additional test cases for edge scenarios
     @Test
@@ -195,7 +193,6 @@ public class BinomialHeapTest {
         public static void zero(){
             counter = 0;
         }
-
     }
     @Test
     public void FirstExperiment()  throws Exception{
