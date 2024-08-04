@@ -1,297 +1,674 @@
-import static org.junit.jupiter.api.Assertions.assertEquals;
+/*
+ * Binomial Heap test program for Data Structures course.
+ * To be compiled with BinomialHeap.java (Student file).
+ *
+ * @author  Oren Kishon
+ *
+ */
 
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Random;
+import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.RejectedExecutionException;
 
 public class BinomialHeapTest {
+    private static int[] createValues(int n) {
+        int[] values = new int[n];
+        int maxValue = n * 10;
+        Random randomGenerator = new Random();
 
-    @Test
-    public void testInsertAndFindMin() {
-        BinomialHeap heap = new BinomialHeap();
+        for (int i = 0; i < n; ++i){
+            while (true) {
+                int j, randInt = randomGenerator.nextInt(maxValue);
 
-        heap.insert(5, "Hi");
-        assertEquals(1, heap.size());
-        assertEquals(5, heap.findMin().key);
+                for (j = 0; j < i && randInt != values[j]; ++j);
+                if (j < i) {
+                    continue;
+                }
+                values[i] = randInt;
+                break;
+            }
+        }
 
-        heap.insert(3, "Tomer");
-        assertEquals(2, heap.size());
-        assertEquals(3, heap.findMin().key);
-
-        heap.insert(8, "Harel");
-        assertEquals(3, heap.size());
-        assertEquals(3, heap.findMin().key);
-
-        // Additional insertions
-        heap.insert(1, "Alice");
-        assertEquals(4, heap.size());
-        assertEquals(1, heap.findMin().key);
-
-        heap.insert(7, "Bob");
-        assertEquals(5, heap.size());
-        assertEquals(1, heap.findMin().key);
-//        PrintHeap.printHeap(heap, true);
-        // Add more insert tests as needed
+        return values;
     }
 
-//    @Test
-//    public void testDeleteMin() {
-//        BinomialHeap heap = new BinomialHeap();
+    private static String vals2str(int[] values) {
+        int min = values[0];
+        for (int val : values) {
+            min = val < min ? val : min;
+        }
+        String s = "size=" + values.length + " min=" + min;
+
+
+        if (values.length <= 20) {
+            for (int val : values) {
+                s += " " + val;
+            }
+        } else {
+            for (int j = 0; j < 5; ++j) {
+                s += " " + values[j];
+            }
+            s += " ...";
+            for (int j = 0; j < 5; ++j) {
+                s += " " + values[values.length - 6 + j];
+            }
+        }
+
+        return s;
+    }
+
+    private static abstract class Test implements Runnable {
+        public final String name;
+        private boolean failed;
+        private String error;
+        private String eMessage;
+        private String eTrace;
+
+        public Test(String name) {
+            this.name = name;
+            this.failed = false;
+            this.error = "";
+            this.eMessage = "";
+            this.eTrace = "";
+//            System.out.println("Adding test: " + name);
+        }
+
+        @Override
+        public void run() {
+            try {
+                test();
+            } catch (Exception e) {
+                setFailed(e);
+            }
+        }
+
+        protected abstract void test();
+
+        public void setFailed(String error) {
+            failed = true;
+            this.error = error;
+//            System.out.println("Failed. error: " + error);
+        }
+
+        public void setFailed(Exception e) {
+            setFailed("Java Exception");
+            this.eMessage = e.getMessage();
+            this.eTrace = "\n";
+            for (StackTraceElement el : e.getStackTrace()) {
+                if (!el.getClassName().contains("BinomialHeap")) {
+                    continue;
+                }
+                this.eTrace += "\t" + el + "\n";
+            }
+//            System.out.println("Exception message: " + eMessage);
+//            System.out.println("Stack trace:\n" + eTrace);
+        }
+
+        public boolean failed() {
+            return failed;
+        }
+
+        public String toString() {
+            return String.format("%s, Faild: %s, Error: %s, "+
+                    "Exception: %s, Call stack: %s", name, 
+                    failed ? "Y" : "N", error, eMessage, eTrace);
+        }
+    }
+
+    static private class TestMeld1 extends Test {
+        public TestMeld1() {
+            super("Meld two empty heaps");
+        }
+
+        protected void test() {
+            BinomialHeap heap1 = new BinomialHeap();
+            BinomialHeap heap2 = new BinomialHeap();
+            heap1.meld(heap2);
+            SanitizeBinomialHeap.sanitize(heap1);
+            if (!heap1.empty()) {
+                setFailed("result not empty!");
+            }
+        }
+    }
+
+    static private class TestMeld2 extends Test {
+        public TestMeld2() {
+            super("Meld other empty heap");
+        }
+
+        protected void test() {
+            BinomialHeap heap1 = new BinomialHeap();
+            BinomialHeap heap2 = new BinomialHeap();
+            heap1.insert(3, "info");
+            SanitizeBinomialHeap.sanitize(heap1);
+            int size1 = heap1.size();
+            heap1.meld(heap2);
+            SanitizeBinomialHeap.sanitize(heap1);
+            if (heap1.empty()) {
+                setFailed("result empty!");
+            }
+            if (heap1.size() != size1 + heap2.size()) {
+                setFailed("melded heap size ("+heap1.size()+
+                        "!= heap1 ("+size1+") + heap2 ("+heap2.size()+")");
+            }
+            if (heap1.findMin().key != 3) {
+                setFailed("findMin after meld failed");
+            }
+        }
+    }
+
+    static private class TestMeld3 extends Test {
+        public TestMeld3() {
+            super("Meld this empty heap with other nonempty");
+        }
+
+        protected void test() {
+            BinomialHeap heap1 = new BinomialHeap();
+            BinomialHeap heap2 = new BinomialHeap();
+            heap2.insert(3, "info");
+            int size1 = heap1.size();
+            heap1.meld(heap2);
+            SanitizeBinomialHeap.sanitize(heap1);
+            if (heap1.empty()) {
+                setFailed("result empty!");
+            }
+            if (heap2.size() != size1 + heap2.size()) {
+                setFailed("melded heap size ("+heap1.size()+
+                        ") != heap1 ("+size1+") + heap2 ("+heap2.size()+
+                        ")");
+            }
+            if (heap1.findMin().key != 3) {
+                setFailed("findMin after meld failed");
+            }
+        }
+    }
+
+    static private class TestMeld4 extends Test {
+        public TestMeld4() {
+            super("Meld nonempty heap with other nonempty");
+        }
+
+        protected void test() {
+            BinomialHeap heap1 = new BinomialHeap(); 
+            BinomialHeap heap2 = new BinomialHeap();
+            heap1.insert(5, "info");
+            heap1.insert(17, "info");
+            int size1 = heap1.size();
+            heap2.insert(3, "info");
+            int size2 = heap2.size();
+
+            heap1.meld(heap2);
+            SanitizeBinomialHeap.sanitize(heap1);
+            if (heap1.empty()) {
+                setFailed("result empty!");
+            }
+            if (heap1.size() != size1 + size2) {
+                setFailed("melded heap size ("+heap1.size()+
+                        ") != heap1 ("+size1+") + heap2 ("+size2+")");
+            }
+            if (heap1.findMin().key != 3) {
+                setFailed("findMin after meld failed");
+            }
+        }
+    }
+
+    static private class TestMeld5 extends Test {
+        public TestMeld5() {
+            super("Meld large heaps");
+        }
+
+        protected void test() {
+            BinomialHeap heap1 = new BinomialHeap();
+            BinomialHeap heap2 = new BinomialHeap();
+            int[] vals1 = createValues(500);
+            int[] vals2 = createValues(500);
+            int min = vals1[0];
+            for (int v : vals1) {
+                heap1.insert(v, Integer.toString(v));
+                min = v < min ? v : min;
+            }
+            for (int v : vals2) {
+                heap2.insert(v, Integer.toString(v));
+                min = v < min ? v : min;
+            }
+            int size1 = heap1.size();
+            int size2 = heap2.size();
+            
+            SanitizeBinomialHeap.sanitize(heap1);
+            SanitizeBinomialHeap.sanitize(heap2);
+            heap1.meld(heap2);
+            SanitizeBinomialHeap.sanitize(heap1);
+            if (heap1.empty()) {
+                setFailed("result empty!");
+            }
+            if (heap1.size() != size1 + size2) {
+                setFailed("melded heap size ("+heap1.size()+
+                        ") != heap1 ("+size1+") + heap2 ("+size2+")");
+            }
+            if (heap1.findMin().key != min) {
+                setFailed("findMin after meld failed");
+            }
+        }
+    }
+
+    static private class TestInsert extends Test {
+        public TestInsert() {
+            super("Check size each insert");
+        }
+
+        protected void test() {
+            int[] vals = createValues(100);
+
+            BinomialHeap heap1 = new BinomialHeap();
+            for (int i = 0; i < vals.length; ++i) {
+                if (heap1.size() != i) {
+                    setFailed("size is "+i+" but size() says "+
+                            heap1.size());
+                    break;
+                }
+                heap1.insert(vals[i], Integer.toString(vals[i]));
+            }
+            SanitizeBinomialHeap.sanitize(heap1);
+        }
+    }
+
+    static private class TestFindMin1 extends Test {
+        public TestFindMin1() {
+            super("Check findMin each unsorted insert");
+        }
+
+        protected void test() {
+
+            int[] vals = createValues(100);
+            int min = vals[0];
+            BinomialHeap heap1 = new BinomialHeap();
+
+            for (int i = 0; i < vals.length; ++i) {
+                min = vals[i] < min ? vals[i] : min;
+                heap1.insert(vals[i], Integer.toString(vals[i]));
+                if (heap1.findMin().key != min) {
+                    setFailed("min is "+min+
+                            "but findMin() says "+
+                            heap1.findMin());
+                    break;
+                }
+            }
+            SanitizeBinomialHeap.sanitize(heap1);
+        }
+    }
+
+    static private class TestFindMin2 extends Test {
+        public TestFindMin2() {
+            super("Check findMin each sorted insert");
+        }
+
+        protected void test() {
+            int[] vals = createValues(100);
+            Arrays.sort(vals);
+            BinomialHeap heap1 = new BinomialHeap();
+            for (int i = vals.length - 1; i >= 0 ; --i) {
+                heap1.insert(vals[i], Integer.toString(vals[i]));
+                if (heap1.findMin().key != vals[i]) {
+                    setFailed("min is "+vals[i]+
+                            "but findMin() says "+
+                            heap1.findMin());
+                    break;
+                }
+            }
+            SanitizeBinomialHeap.sanitize(heap1);
+        }
+    }
+
+    static private class TestDeleteMin extends Test {
+        public TestDeleteMin() {
+            super("Check findMin after each deleteMin");
+        }
+
+        protected void test() {
+
+            int[] vals = createValues(100);
+            BinomialHeap heap1 = new BinomialHeap();
+
+            for (int v : vals) {
+                heap1.insert(v, Integer.toString(v));
+            }
+            SanitizeBinomialHeap.sanitize(heap1);
+            Arrays.sort(vals);
+            for (int v : vals) {
+                if (heap1.findMin().key != v) {
+                    setFailed("min is "+v+" but findMin() says "+
+                            heap1.findMin());
+                    break;
+                }
+                heap1.deleteMin();
+                SanitizeBinomialHeap.sanitize(heap1);
+            }
+        }
+    }
+
+    static private class TestEmpty extends Test {
+        public TestEmpty() {
+            super("Check empty/size after insert and deleteMin");
+        }
+
+        protected void test() {
+
+            BinomialHeap heap1 = new BinomialHeap();
+            int size = 0;
+
+            for (int i = 10; i < 30; ++i) {
+                if (!heap1.empty()) {
+                    setFailed("empty but empty() returns false");
+                    break;
+                }
+                if (heap1.size() != size) {
+                    setFailed("size is "+size+
+                            " but size() returns "+
+                            heap1.size());
+                    break;
+                }
+                for (int j = 0; j < i; ++j) {
+                    heap1.insert(i, Integer.toString(i));
+                    ++size;
+                    if (heap1.empty()) {
+                        setFailed(
+                                "not empty but empty() returns true");
+                        break;
+                    }
+                    if (heap1.size() != size) {
+                        setFailed("size is "+size+
+                                " but size() returns "+
+                                heap1.size());
+                        break;
+                    }
+                }
+                SanitizeBinomialHeap.sanitize(heap1);
+                for (int j = 0; j < i; ++j) {
+                    if (heap1.empty()) {
+                        setFailed(
+                                "not empty but empty() returns true");
+                        break;
+                    }
+                    heap1.deleteMin();
+                    --size;
+                    if (heap1.size() != size) {
+                        setFailed("size is "+size+
+                                " but size() returns "+
+                                heap1.size());
+                        break;
+                    }
+                    SanitizeBinomialHeap.sanitize(heap1);
+                }
+                if (!heap1.empty()) {
+                    setFailed("empty but empty() returns false");
+                    break;
+                }
+            }
+        }
+    }
+
+//    static private class TestIsValid extends Test {
+//        public TestIsValid() {
+//            super("Check valid in after chain of operations");
+//        }
 //
-//        heap.insert(5, "Hi");
-//        heap.insert(3, "Tomer");
-//        heap.insert(8, "Harel");
+//        protected void test() {
 //
-//        assertEquals(3, heap.size());
-//        assertEquals(3, heap.findMin().key);
+//            BinomialHeap heap1 = new BinomialHeap();
+//            int nInsert = 0, nDelete = 0;
 //
-//        heap.deleteMin();
-//        assertEquals(2, heap.size());
-//        assertEquals(5, heap.findMin().key);
+//            for (int i = 10; i < 30; ++i) {
+//                if (!heap1.isValid()) {
+//                    setFailed("isValid() returned false after "+
+//                            nInsert+" inserts and "+nDelete+" deteles");
+//                    break;
+//                }
+//                for (int j = 0; j < i; ++j) {
+//                    heap1.insert(i);
+//                    ++nInsert;
+//                    if (!heap1.isValid()) {
+//                        setFailed(
+//                                "isValid() returned false after "+
+//                                nInsert+ " inserts and "+nDelete+
+//                                " deteles");
+//                        break;
+//                    }
+//                }
+//                for (int j = 0; j < i; ++j) {
+//                    if (!heap1.isValid()) {
+//                        setFailed(
+//                                "isValid() returned false after "+
+//                                nInsert+ " inserts and "+nDelete+
+//                                " deteles");
+//                        break;
+//                    }
+//                    heap1.deleteMin();
+//                    ++nDelete;
+//                }
 //
-//        heap.deleteMin();
-//        assertEquals(1, heap.size());
-//        assertEquals(8, heap.findMin().key);
-//
-//        heap.deleteMin();
-//        assertEquals(0, heap.size());
-//        assertEquals(null, heap.findMin()); // Assuming findMin returns null for an empty heap
-//
-//        // Additional deletions
-//        heap.insert(2, "Charlie");
-//        heap.insert(6, "David");
-//        heap.deleteMin();
-//        assertEquals(1, heap.size());
-//        assertEquals(6, heap.findMin().key);
-//
-//        heap.deleteMin();
-//        assertEquals(0, heap.size());
-//        assertEquals(null, heap.findMin()); // Assuming findMin returns null for an empty heap
-//
-//        // Add more deleteMin tests as needed
+//                if (!heap1.isValid()) {
+//                    setFailed("isValid() returned false after "+
+//                            nInsert+ " inserts and "+nDelete+" deteles");
+//                    break;
+//                }
+//            }
+//        }
 //    }
 
-    // Additional test cases for edge scenarios
-    @Test
-    public void testMultipleInsertDelete() {
-        BinomialHeap heap = new BinomialHeap();
+//    static private class TestArrayToHeap1 extends Test {
+//        public TestArrayToHeap1() {
+//            super("arrayToHeap: Insert and check size");
+//        }
+//
+//        protected void test() {
+//
+//            int[] vals = createValues(30);
+//            int min = vals[0];
+//            for (int v : vals) {
+//                min = v < min ? v : min;
+//            }
+//            BinomialHeap heap1 = new BinomialHeap();
+//
+//            heap1.arrayToHeap(vals);
+//            if (heap1.size() != vals.length) {
+//                setFailed("Array size is "+vals.length+ " but size() returned "+
+//                        heap1.size());
+//            }
+//            if (heap1.findMin() != min) {
+//                setFailed("Array size is "+vals.length+ " but size() returned "+
+//                        heap1.size());
+//            }
+//        }
+//    }
 
-        // Insert elements
-        heap.insert(10, "A");
-        heap.insert(6, "B");
-        heap.insert(12, "C");
-        heap.insert(4, "D");
+//    static private class TestArrayToHeap2 extends Test {
+//        public TestArrayToHeap2() {
+//            super("arrayToHeap: Insert and check size after heap has elements");
+//        }
+//
+//        protected void test() {
+//
+//            BinomialHeap heap1 = new BinomialHeap();
+//            heap1.insert(1);
+//            heap1.insert(2);
+//            heap1.insert(3);
+//            int[] vals = createValues(30);
+//            int min = Integer.MAX_VALUE;
+//            for (int i = 0; i < vals.length; ++i) {
+//                vals[i] += 5;
+//                min = vals[i] < min ? vals[i] : min;
+//            }
+//
+//            heap1.arrayToHeap(vals);
+//            if (heap1.size() != vals.length) {
+//                setFailed("Array size is "+vals.length+ " but size() returned "+
+//                        heap1.size());
+//            }
+//            if (heap1.findMin() != min) {
+//                setFailed("Array minimum is "+min+ " but findMin() returned "+
+//                        heap1.findMin());
+//            }
+//        }
+//    }
 
-        // Verify size and findMin
-        assertEquals(4, heap.size());
-        assertEquals(4, heap.findMin().key);
+//    static private class TestBinaryRep extends Test {
+//        public TestBinaryRep() {
+//            super("Binary representation");
+//        }
+//
+//        private static int binaryArrayToNum(boolean[] array) {
+//            int num = 0;
+//
+//            for (int i = 0; i < array.length; ++i) {
+//                if (array[i]) {
+//                    num += 1 << i;
+//                }
+//            }
+//
+//            return num;
+//        }
+//
+//        private static String bin2str(boolean[] arr) {
+//            String s = "";
+//
+//            for (int i = arr.length - 1; i >= 0; --i) {
+//                s += arr[i] ? "1" : "0";
+//            }
+//
+//            return s;
+//        }
+//
+//        protected void test() {
+//
+//            final boolean[][] binarySizes = {
+//                { true, true, false, false, false, true }, // 49
+//                { true, false, false, true, true, true }, // 39
+//                { true, true, false, false, true } // 25
+//            };
+//
+//            for (boolean[] binaryArr : binarySizes) {
+//                BinomialHeap heap1 = new BinomialHeap();
+//                int size = binaryArrayToNum(binaryArr);
+//                int[] vals = createValues(size);
+//
+//                for (int v : vals) {
+//                    heap1.insert(v);
+//                }
+//
+//                boolean[] res = heap1.binaryRep();
+//                if (res.length != binaryArr.length) {
+//                    setFailed("binary size length is "+binaryArr.length+
+//                            "but result length is "+ res.length);
+//                    break;
+//                }
+//                boolean unequal = false;
+//
+//                for (int i = 0; i < res.length; ++i) {
+//                    if (res[i] != binaryArr[i]) {
+//                        unequal = true;
+//                        break;
+//                    }
+//                }
+//                if (!unequal) {
+//                    continue;
+//                }
+//
+//                unequal = false;
+//                boolean[] binaryArrayReverse = new boolean[binaryArr.length];
+//                for (int i = 0; i < res.length; ++i) {
+//                    binaryArrayReverse[binaryArrayReverse.length - 1 - i] = 
+//                        binaryArr[i];
+//                }
+//
+//                for (int i = 0; i < res.length; ++i) {
+//                    if (res[i] != binaryArrayReverse[i]) {
+//                        unequal = true;
+//                        break;
+//                    }
+//                }
+//
+//                if (unequal) {
+//                    setFailed("size binary array is: "+bin2str(binaryArr)+
+//                            " but result is "+ bin2str(res));
+//                    break;
+//                }
+//            }
+//        }
+//    }
 
-        // Delete the minimum
-        heap.deleteMin();
+//    static private class TestMinTreeRank extends Test {
+//        public TestMinTreeRank() {
+//            super("minTreeRank");
+//        }
+//
+//        protected void test() {
+//
+//            int[] minRanks = { 0, 1, 4, 5 };
+//            for (int minRank : minRanks) {
+//                int size = 7 << minRank;
+//                int[] vals = createValues(size);
+//                BinomialHeap heap1 = new BinomialHeap();
+//
+//                for (int v : vals) {
+//                    heap1.insert(v);
+//                }
+//                if (heap1.minTreeRank() != minRank) {
+//                    setFailed("Min tree rank is "+minRank+" (Size="+size+
+//                            ") but minTreeRank() returned "+
+//                            heap1.minTreeRank());
+//                    break;
+//                }
+//            }
+//        }
+//    }
 
-        // Verify size and findMin after deletion
-        assertEquals(3, heap.size());
-        assertEquals(6, heap.findMin().key);
+    public static void main(String[] argv) {
 
-        // Insert more elements
-        heap.insert(7, "E");
-        heap.insert(2, "F");
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Test[] tests = { 
+            new TestMeld1(), 
+            new TestMeld2(), 
+            new TestMeld3(), 
+            new TestMeld4(), 
+            new TestMeld5(), 
+            new TestInsert(),
+            new TestFindMin1(),
+            new TestFindMin2(),
+            new TestDeleteMin(),
+            new TestEmpty(),
+//            new TestIsValid(),
+//            new TestArrayToHeap1(),
+//            new TestArrayToHeap2(),
+//            new TestBinaryRep(),
+//            new TestMinTreeRank()
+        };
 
-        // Verify size and findMin after more insertions
-        assertEquals(5, heap.size());
-        assertEquals(2, heap.findMin().key);
-
-        // Delete all elements
-        heap.deleteMin();
-        heap.deleteMin();
-        heap.deleteMin();
-        heap.deleteMin();
-        heap.deleteMin();
-
-        // Verify size and findMin for an empty heap
-        assertEquals(0, heap.size());
-        assertEquals(null, heap.findMin());
-    }
-
-    @Test
-    public void testRandomInserts(){
-        BinomialHeap heap = new BinomialHeap();
-        // Create a list with numbers 1 to 100
-        List<Integer> list = new ArrayList<>();
-        for (int i = 1; i <= 100; i++) {
-            list.add(i);
-        }
-
-        // Shuffle the list using Collections.shuffle
-        Collections.shuffle(list);
-        for (int i = 0; i < 100; i++) {
-            heap.insert(list.get(i), list.get(i).toString());
-        }
-        for (int i = 1; i <= 100; i++) {
-            assertEquals(i, heap.findMin().key);
-            assertEquals(101 - i, heap.size());
-            heap.deleteMin();
-        }
-    }
-    @Test
-    public void testDeleteItem(){
-        BinomialHeap heap = new BinomialHeap();
-        // Create a list with numbers 1 to 100
-        List<Integer> list = new ArrayList<>();
-        for (int i = 1; i <= 100; i++) {
-            list.add(i);
-        }
-        BinomialHeap.HeapItem z = null;
-        // Shuffle the list using Collections.shuffle
-        Collections.shuffle(list);
-        for (int i = 1; i < 100; i++) {
-            if (i == 30)
-            {
-              z = heap.insert(list.get(i), list.get(i).toString());
+        for (Test test : tests) {
+            try {
+                executor.submit(test).get(6, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                test.setFailed("Timed out. Infinite loop");
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+//                System.exit(1);
             }
-            else{heap.insert(list.get(i), list.get(i).toString());}
         }
-        System.out.println(heap.findMin().key);
-        System.out.println(heap.findMin().node);
-        System.out.println(z.key);
-        System.out.println(z.node);
-        heap.decreaseKey(z, 1000);
-        System.out.println(heap.findMin().key);
-        System.out.println(heap.findMin().node);
-        System.out.println(z.key);
-        System.out.println(z.node);
-    }
+        executor.shutdown();
 
-    public class TestHeap extends BinomialHeap{
-        public static int counter = 0;
-
-        public HeapNode connect_two_nodes(HeapNode node1,HeapNode node2){
-            HeapNode min = node2;
-            HeapNode max = node1;
-            if (node1.item.key <=node2.item.key){
-                min = node1;
-                max = node2;
+        int failed = 0, i = 0;
+        for (Test test : tests) {
+            if (test.failed()) {
+                ++failed;
+                System.out.printf("Test %2d | " + test + "\n", ++i);
             }
-
-            if (node1.rank!=0){
-                HeapNode prevChild = min.child;
-                HeapNode prevChildNext = min.child.next;
-                // inserting max to the linked list
-                prevChild.next = max;
-                max.next = prevChildNext;
-
-            }
-            max.parent = min;
-            min.child = max;
-            min.rank++;
-            counter++;
-            return min;
         }
-        public static void zero(){
-            counter = 0;
-        }
-    }
-    @Test
-    public void FirstExperiment()  throws Exception{
-        for (int i = 1; i < 7; i++){
-            TestHeap heap = new TestHeap();
-            TestHeap.zero();
-            int n = (int)Math.pow(3, i + 5)-1;
-            long start = System.currentTimeMillis();
-            TimeUnit.SECONDS.sleep(1);
-            for (int j=1; j<=n; j++){
-                heap.insert(j, Integer.toString(j));
-            }
-            long end = System.currentTimeMillis();
-            long elapsedTime = end - start;
-            System.out.print("i =  ");
-            System.out.print(i);
-            System.out.print(", Num of Trees: ");
-            System.out.print(heap.numTrees());
-            System.out.print(", Elapsed Time (ms): ");
-            System.out.print(elapsedTime);
-            System.out.print(", num of links: ");
-            System.out.print(TestHeap.counter);
-            System.out.print("\n");
-
-        }
-    }
-    @Test
-    public void SecondExperiment()  throws Exception{
-        for (int i = 1; i < 7; i++){
-            TestHeap heap = new TestHeap();
-            TestHeap.zero();
-            int n = (int)Math.pow(3, i + 5)-1;
-            List<Integer> nums = new ArrayList<>();
-
-            for (int j=1; j<=n; j++){
-                nums.add(j);
-            }
-            int sumRunkDeleted = 0;
-            long start = System.currentTimeMillis();
-            TimeUnit.SECONDS.sleep(1);
-            Collections.shuffle(nums);
-            for (int j=0; j<=n-1; j++){
-                heap.insert(nums.get(j), Integer.toString(nums.get(j)));
-            }
-            for (int j=0; j<=n/2; j++){
-                sumRunkDeleted += heap.findMin().node.rank;
-                heap.deleteMin();
-            }
-
-
-
-
-            long end = System.currentTimeMillis();
-            long elapsedTime = end - start;
-            System.out.print("i =  ");
-            System.out.print(i);
-            System.out.print(", Num of Trees: ");
-            System.out.print(heap.numTrees());
-            System.out.print(", Elapsed Time (ms): ");
-            System.out.print(elapsedTime);
-            System.out.print(", num of links: ");
-            System.out.print(TestHeap.counter);
-            System.out.print(", sum of deleted ranks: ");
-            System.out.print(sumRunkDeleted);
-            System.out.print("\n");
-
-        }
-    }
-    @Test
-    public void ThirdExperiment()  throws Exception{
-        for (int i = 1; i < 7; i++){
-            TestHeap heap = new TestHeap();
-            TestHeap.zero();
-            int n = (int)Math.pow(3, i + 5)-1;
-
-            int sumRunkDeleted = 0;
-            long start = System.currentTimeMillis();
-            TimeUnit.SECONDS.sleep(1);
-            for (int j=0; j<=n-1; j++){
-                heap.insert(n-j, Integer.toString(n-j));
-            }
-            while (heap.size() != Math.pow(2,5) -1){
-                sumRunkDeleted += heap.findMin().node.rank;
-                heap.deleteMin();
-            }
-            long end = System.currentTimeMillis();
-            long elapsedTime = end - start;
-            System.out.print("i =  ");
-            System.out.print(i);
-            System.out.print(", Num of Trees: ");
-            System.out.print(heap.numTrees());
-            System.out.print(", Elapsed Time (ms): ");
-            System.out.print(elapsedTime);
-            System.out.print(", num of links: ");
-            System.out.print(TestHeap.counter);
-            System.out.print(", sum of deleted ranks: ");
-            System.out.print(sumRunkDeleted);
-            System.out.print("\n");
-
-        }
+        System.out.println("Failed "+failed+" Out of "+tests.length+" tests");
+        System.out.printf("Grade:\n%.0f\n", 
+                100 * (1 - (float)failed/tests.length));
+//        System.exit(0);
     }
 }

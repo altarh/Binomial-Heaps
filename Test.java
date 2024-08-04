@@ -5,7 +5,7 @@ import java.util.Collections;
 
 public class Test {
 
-    static BinomialHeap.HeapNode heap;
+    static Heap heap;
     static BinomialHeap binomialHeap;
     static double grade;
     static double testScore;
@@ -85,7 +85,7 @@ public class Test {
 
     static void test1() {
         String test = "test1";
-        heap = new BinomialHeap.HeapNode();
+        heap = new Heap();
         binomialHeap = new BinomialHeap();
         addKeys(0);
         HeapPrinter printer = new HeapPrinter(System.out);

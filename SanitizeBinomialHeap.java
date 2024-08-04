@@ -3,16 +3,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-class Pair<T, S> {
-    public final T first;
-    public final S second;
-
-    public Pair(T first, S second) {
-        this.first = first;
-        this.second = second;
-    }
-}
-
 public class SanitizeBinomialHeap {
     public static void sanitize(BinomialHeap heap) {
         verify_size(heap);

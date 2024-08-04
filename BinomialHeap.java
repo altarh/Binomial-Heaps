@@ -571,6 +571,17 @@ public class BinomialHeap {
 			return temp;
 		}
 
+		public HeapNode getParent() {
+			return this.parent;
+		}
+
+		public HeapNode getNext() {
+			return this.next;
+		}
+
+		public HeapNode getChild() {
+			return this.child;
+		}
 	}
 
 	/**
