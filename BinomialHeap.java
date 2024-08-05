@@ -19,28 +19,35 @@ public class BinomialHeap {
 	//////////////main: for debugging!!
 	public static void main(String[] args) {
 		BinomialHeap heap = new BinomialHeap();
-		for (int i = 2; i < 2000; i++) {
-			heap.insert(i, "test");
+		for (int i = 1; i<9; i++) {
+			heap.insert(i,"test");
 		}
 
-		System.out.println(heap.last.item.key);
-		System.out.println(heap.min.item.key);
 		System.out.println(heap.size);
-		System.out.println(heap.numOfTrees);
-		System.out.println(heap.last.child.child.child.item.key);
-		System.out.println(heap.min.rank);
-		heap.deleteMin();
-		heap.deleteMin();
-		heap.deleteMin();
-		heap.deleteMin();
-		heap.deleteMin();
-		heap.deleteMin();
-		heap.deleteMin();
-		heap.deleteMin();
-		heap.deleteMin();
-		System.out.println(heap.size);
-		System.out.println(heap.numOfTrees);
-		System.out.println(heap.min.item.key);
+//		BinomialHeap heap = new BinomialHeap();
+//		for (int i = 2; i < 2000; i++) {
+//			heap.insert(i, "test");
+//		}
+//
+//		System.out.println(heap.last.item.key);
+//		System.out.println(heap.min.item.key);
+//		System.out.println(heap.size);
+//		System.out.println(heap.numOfTrees);
+//		System.out.println(heap.last.child.child.child.item.key);
+//		System.out.println(heap.min.rank);
+//		heap.deleteMin();
+//		heap.deleteMin();
+//		heap.deleteMin();
+//		heap.deleteMin();
+//		heap.deleteMin();
+//		heap.deleteMin();
+//		heap.deleteMin();
+//
+//		System.out.println("test " + heap.last.child.child.item.key);
+//		heap.delete(heap.last.child.child.item);
+//		System.out.println(heap.size);
+//		System.out.println(heap.numOfTrees);
+//		System.out.println(heap.min.item.key);
 
 
 
@@ -79,7 +86,7 @@ public class BinomialHeap {
 		} else {
 			// This case handles when the node2's child list is empty
 			newNode2.child = newNode1;
-			newNode1.next = newNode2; // pointing to itself as it's the only child
+			newNode1.next = newNode1; // pointing to itself as it's the only child
 		}
 		newNode2.child = newNode1;
 		newNode1.parent = newNode2;
@@ -579,6 +586,9 @@ public class BinomialHeap {
 			temp.parent = node.parent;
 			temp.rank = node.rank;
 			temp.item = node.item;
+			if (node.parent != null) {
+				temp.parent.child=node.parent.child;
+			}
 			return temp;
 		}
 
